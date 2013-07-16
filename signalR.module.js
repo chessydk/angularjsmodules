@@ -7,7 +7,7 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
     "use strict";
 
     // log signalR client-side messages
-    //$.connection.hub.logging = true;
+    $.connection.hub.logging = true;
 
     function init() {
         return $.connection.hub.start();
@@ -41,18 +41,16 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
     */
     Hub.prototype.run = function (methodName) {
         var self = this;
-
-        // Since the first argument is the parameter "methodName", we ignore it.
-        var args = [].slice.call(arguments, 1);
-
+        var args = arguments;
         var def = $q.defer();
 
         // calls the hub method and resolves the promise
         function _resolveMethodCall() {
             
+            // get a reference to a method on the hub proxy
             var methodRef = self.hub.server[methodName];
             try {
-                var promiseResponse = methodRef.apply(self.hub, args);
+                var promiseResponse = self.hub.invoke.apply(self.hub, args);
 
                 if (!$rootScope.$$phase) {
                     $rootScope.$apply(function () {
