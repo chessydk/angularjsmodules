@@ -1,4 +1,4 @@
-// Logging facility. Depends on SignalR
+// Logging facility. Depends on SignalR.module.js
 // saves logs to the server in either or all of the three cases:
 // 1) time limit reached;
 // 2) log size limit reached;
