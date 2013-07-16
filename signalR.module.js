@@ -47,8 +47,6 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
         // calls the hub method and resolves the promise
         function _resolveMethodCall() {
             
-            // get a reference to a method on the hub proxy
-            var methodRef = self.hub.server[methodName];
             try {
                 var promiseResponse = self.hub.invoke.apply(self.hub, args);
 
