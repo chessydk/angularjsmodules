@@ -1,9 +1,9 @@
 /*
 *   AngularJs module simplifying the work with SignalR hub proxies. No need to explicitly start the connection to a hub. 
-*   Requires angular.js, signalR
+*   Requires angular.js
 *   @example: hubFactory.hub("myHub").run("myMethod", param_1, param_2, .... param_n).then ( function(responseData) {} )
 */
-angular.module("SignalRModule", []).factory("hubFactory", ["$q", "$rootScope", function ($q, $rootScope) {
+angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$rootScope", function ($q, $rootScope) {
     "use strict";
 
     // log signalR client-side messages
@@ -41,19 +41,19 @@ angular.module("SignalRModule", []).factory("hubFactory", ["$q", "$rootScope", f
     */
     Hub.prototype.run = function (methodName) {
         var self = this;
-        var args = [];
-        // since the first argument is the parameter "methodName", we ignore it
-        for (var i = 1, n = arguments.length; i < n; i++) {
-            args.push(arguments[i]);
-        }
+
+        // Since the first argument is the parameter "methodName", we ignore it.
+        var args = [].slice.call(arguments, 1);
 
         var def = $q.defer();
 
         // calls the hub method and resolves the promise
         function _resolveMethodCall() {
+            
             var methodRef = self.hub.server[methodName];
             try {
                 var promiseResponse = methodRef.apply(self.hub, args);
+
                 if (!$rootScope.$$phase) {
                     $rootScope.$apply(function () {
                         def.resolve(promiseResponse);
@@ -66,13 +66,14 @@ angular.module("SignalRModule", []).factory("hubFactory", ["$q", "$rootScope", f
             catch (err) {
                 if (!$rootScope.$$phase) {
                     $rootScope.$apply(function () {
-                        def.reject(new Error(err));
+                        def.reject(err);
                     });
                 }
                 else {
-                    def.reject(new Error(err));
+                    def.reject(err);
                 }
             }
+
         }
 
         // if connection to the hub isn't established
@@ -82,11 +83,11 @@ angular.module("SignalRModule", []).factory("hubFactory", ["$q", "$rootScope", f
             }).fail(function (err) {
                 if (!$rootScope.$$phase) {
                     $rootScope.$apply(function () {
-                        def.reject(new Error(err));
+                        def.reject(err);
                     });
                 }
                 else {
-                    def.reject(new Error(err));
+                    def.reject(err);
                 }
             });
         }
