@@ -8,17 +8,8 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
 
     // log signalR client-side messages
     $.connection.hub.logging = true;
-    //$.signalR.prototype.disconnectTimeout = 100000;
-
+   
     function init() {
-        //$.connection.hub.stateChanged(function (state) {
-            // Transitioning from connecting to connected
-            //if (state.oldState === $.signalR.connectionState.connecting && state.newState === $.signalR.connectionState.connected) {
-            //if(state.newState === $.signalR.connectionState.disconnected){
-            //    $.connection.hub.start();
-            //}
-        //});
-
         return $.connection.hub.start();
     };
 
