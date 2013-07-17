@@ -8,8 +8,17 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
 
     // log signalR client-side messages
     $.connection.hub.logging = true;
+    //$.signalR.prototype.disconnectTimeout = 100000;
 
     function init() {
+        //$.connection.hub.stateChanged(function (state) {
+            // Transitioning from connecting to connected
+            //if (state.oldState === $.signalR.connectionState.connecting && state.newState === $.signalR.connectionState.connected) {
+            //if(state.newState === $.signalR.connectionState.disconnected){
+            //    $.connection.hub.start();
+            //}
+        //});
+
         return $.connection.hub.start();
     };
 
@@ -44,19 +53,21 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
         var args = arguments;
         var def = $q.defer();
 
+        if (!$.connection.hub) def.reject("Hub not available.");
+
         // calls the hub method and resolves the promise
         function _resolveMethodCall() {
             
-            try {
-                var promiseResponse = self.hub.invoke.apply(self.hub, args);
+            try {                
+                var response = self.hub.invoke.apply(self.hub, args);
 
                 if (!$rootScope.$$phase) {
                     $rootScope.$apply(function () {
-                        def.resolve(promiseResponse);
+                        def.resolve(response);
                     });
                 }
                 else {
-                    def.resolve(promiseResponse);
+                    def.resolve(response);
                 }
             }
             catch (err) {
@@ -69,33 +80,42 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
                     def.reject(err);
                 }
             }
-
         }
 
-        // if connection to the hub isn't established
-        if ($.connection.hub && $.connection.hub.state === $.signalR.connectionState.disconnected) {
-            init().done(function () {
+        switch ($.connection.hub.state) {
+            case $.signalR.connectionState.connected:
                 _resolveMethodCall();
-            }).fail(function (err) {
-                if (!$rootScope.$$phase) {
-                    $rootScope.$apply(function () {
+                break;
+            case $.signalR.connectionState.disconnected:
+                init().done(function () {
+                    _resolveMethodCall();
+                }).fail(function (err) {
+                    if (!$rootScope.$$phase) {
+                        $rootScope.$apply(function () {
+                            def.reject(err);
+                        });
+                    }
+                    else {
                         def.reject(err);
-                    });
-                }
-                else {
-                    def.reject(err);
-                }
-            });
-        }
-        else {
-            _resolveMethodCall();
+                    }
+                });
+                break;
+            case $.signalR.connectionState.connecting:
+            case $.signalR.connectionState.reconnecting:
+            default:
+                $.connection.hub.stateChanged(function (state) {
+                    if (state.newState === $.signalR.connectionState.connected)
+                        _resolveMethodCall();
+                });
+                break;
+
         }
 
         return def.promise;
     }
     // returns an Object containing a method that returns a required SignalR hub
     return {
-        hub: function (hubName) {
+        getHub: function (hubName) {
             return new Hub(hubName);
         }
     };
