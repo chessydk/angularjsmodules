@@ -44,13 +44,12 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
         var args = arguments;
         var def = $q.defer();
 
-        $.connection.hub = undefined;
         if (!$.connection.hub) {
             window.setTimeout(
                 function () {
                     _safeApply(def.reject, "Hub not available.");
                 }, 0);
-            return def.promise();
+            return def.promise;
         }
 
         // calls apply on the root scope
