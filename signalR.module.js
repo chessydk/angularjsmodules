@@ -56,11 +56,11 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
         function _safeApply(methodRef, arg) {
             if (!$rootScope.$$phase) {
                 $rootScope.$apply(function () {
-                    methodRef(arg);
+                    methodRef.call(def, arg);
                 });
             }
             else {
-                methodRef(arg);
+                methodRef.call(def, arg);
             }
         }
 
@@ -96,7 +96,6 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
                         _resolveMethodCall();
                 });
                 break;
-
         }
 
         return def.promise;
