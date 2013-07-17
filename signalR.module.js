@@ -44,7 +44,13 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
         var args = arguments;
         var def = $q.defer();
 
-        if (!$.connection.hub) def.reject("Hub not available.");
+        if (!$.connection.hub) {
+            window.setTimeout(
+                function () {
+                    def.reject("Hub not available.");
+                }, 0);
+            return def.promise();
+        }
 
         // calls the hub method and resolves the promise
         function _resolveMethodCall() {
