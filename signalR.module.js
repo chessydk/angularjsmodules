@@ -8,7 +8,7 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
 
     // log signalR client-side messages
     $.connection.hub.logging = true;
-   
+
     function init() {
         return $.connection.hub.start();
     };
@@ -44,38 +44,37 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
         var args = arguments;
         var def = $q.defer();
 
+        $.connection.hub = undefined;
         if (!$.connection.hub) {
             window.setTimeout(
                 function () {
-                    def.reject("Hub not available.");
+                    _safeApply(def.reject, "Hub not available.");
                 }, 0);
             return def.promise();
         }
+
+        // calls apply on the root scope
+        function _safeApply(methodRef, arg) {
+            if (!$rootScope.$$phase) {
+                $rootScope.$apply(function () {
+                    methodRef(arg);
+                });
+            }
+            else {
+                methodRef(arg);
+            }
+        }
+
 
         // calls the hub method and resolves the promise
         function _resolveMethodCall() {
             
             try {                
                 var response = self.hub.invoke.apply(self.hub, args);
-
-                if (!$rootScope.$$phase) {
-                    $rootScope.$apply(function () {
-                        def.resolve(response);
-                    });
-                }
-                else {
-                    def.resolve(response);
-                }
+                _safeApply(def.resolve, response);                
             }
             catch (err) {
-                if (!$rootScope.$$phase) {
-                    $rootScope.$apply(function () {
-                        def.reject(err);
-                    });
-                }
-                else {
-                    def.reject(err);
-                }
+                _safeApply(def.reject, response);
             }
         }
 
@@ -87,14 +86,7 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
                 init().done(function () {
                     _resolveMethodCall();
                 }).fail(function (err) {
-                    if (!$rootScope.$$phase) {
-                        $rootScope.$apply(function () {
-                            def.reject(err);
-                        });
-                    }
-                    else {
-                        def.reject(err);
-                    }
+                    _safeApply(def.reject, err);                   
                 });
                 break;
             case $.signalR.connectionState.connecting:
