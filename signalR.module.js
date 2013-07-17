@@ -9,10 +9,6 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
     // log signalR client-side messages
     $.connection.hub.logging = true;
 
-    function init() {
-        return $.connection.hub.start();
-    };
-
     /**
     * Hub constructor.
     *
@@ -52,6 +48,10 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
             return def.promise;
         }
 
+        function _init() {
+            return $.connection.hub.start();
+        };
+
         // calls apply on the root scope
         function _safeApply(methodRef, arg) {
             if (!$rootScope.$$phase) {
@@ -82,7 +82,7 @@ angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$ro
                 _resolveMethodCall();
                 break;
             case $.signalR.connectionState.disconnected:
-                init().done(function () {
+                _init().done(function () {
                     _resolveMethodCall();
                 }).fail(function (err) {
                     _safeApply(def.reject, err);                   
