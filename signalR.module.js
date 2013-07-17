@@ -1,7 +1,7 @@
 /*
 *   AngularJs module simplifying the work with SignalR hub proxies. No need to explicitly start the connection to a hub. 
 *   Requires angular.js
-*   @example: hubFactory.hub("myHub").run("myMethod", param_1, param_2, .... param_n).then ( function(responseData) {} )
+*   @example: hubFactory.getHub("myHub").run("myMethod", param_1, param_2, .... param_n).then ( function(responseData) {} )
 */
 angular.module("dataAccess.SignalRModule", []).factory("hubFactory", ["$q", "$rootScope", function ($q, $rootScope) {
     "use strict";
